@@ -15,11 +15,11 @@ variables:
   serviceConnection: 'Azure-Service-Connection'
 
 stages:
-  - stage: 
-    displayName: Terraform_build-stage
+  - stage: Terraform_build_stage
+    displayName: Terraform_build_stage
     jobs:
       - job: 
-        displayName: Terraform_build-job
+        displayName: Terraform_build_ob
         steps:
           - task: TerraformInstaller@1
             inputs:
@@ -50,3 +50,45 @@ stages:
               targetPath: '$(Pipeline.Workspace)'
               artifact: 'terraform-plan'
               publishLocation: 'pipeline'
+
+  - stage: 
+    displayName: Terraform_deploy_stage
+    dependsOn: Terraform_build_stage
+    condition: succeeded()
+    jobs:
+      - deployment: Terraform_deploy_job
+        displayName: Terraform_deploy_job
+        environment: terraform-production
+        strategy:
+         runOnce:
+           deploy:
+             steps:
+               - task: TerraformInstaller@1
+                 inputs:
+                   terraformVersion: 'latest'
+
+               - task: DownloadPipelineArtifact@2
+                 inputs:
+                   buildType: 'current'
+                   targetPath: '$(Pipeline.Workspace)'
+
+               - task: TerraformTask@5
+                 inputs:
+                  provider: 'azurerm'
+                  command: 'init'
+                  backendAzureRmResourceGroupName: 'Terraform_build-stage'
+                  backendAzureRmStorageAccountName: 'strgar'
+                  backendAzureRmContainerName: 'cntrainer'
+                  backendAzureRmKey: 'blob.state'
+
+               - task: TerraformTask@5
+                 inputs:
+                   provider: 'azurerm'
+                   command: 'apply'
+                   commandOptions: '$(Pipeline.Workspace)/terraform-plan/tfplan'
+                   environmentServiceNameAzureRM: 'devtoazure'
+                   
+              
+
+                
+         
