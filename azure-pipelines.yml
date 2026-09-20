@@ -1,0 +1,52 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  terraformVersion: '1.16.1'
+  workingDirectory: '$(System.DefaultWorkingDirectory)'
+  serviceConnection: 'Azure-Service-Connection'
+
+stages:
+  - stage: 
+    displayName: Terraform_build-stage
+    jobs:
+      - job: 
+        displayName: Terraform_build-job
+        steps:
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: 'latest'
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              backendServiceArm: 'devtoazure'
+              backendAzureRmResourceGroupName: 'Terraform_build-stage'
+              backendAzureRmStorageAccountName: 'strgar'
+              backendAzureRmContainerName: 'cntrainer'
+              backendAzureRmKey: 'blob.state'
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'validate'
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              commandOptions: '-out=tfplan'
+              environmentServiceNameAzureRM: 'devtoazure'
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: '$(Pipeline.Workspace)'
+              artifact: 'terraform-plan'
+              publishLocation: 'pipeline'
