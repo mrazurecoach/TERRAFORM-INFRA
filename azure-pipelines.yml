@@ -42,12 +42,12 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'plan'
-              commandOptions: '-out=tfplan'
+              commandOptions: '-out=$(Build.ArtifactStagingDirectory)/tfplan'
               environmentServiceNameAzureRM: 'devtoazure'
 
           - task: PublishPipelineArtifact@1
             inputs:
-              targetPath: '$(Pipeline.Workspace)'
+              targetPath: '$(Build.ArtifactStagingDirectory)/tfplan'
               artifact: 'terraform-plan'
               publishLocation: 'pipeline'
 
