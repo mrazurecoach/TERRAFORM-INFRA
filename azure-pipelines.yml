@@ -76,10 +76,11 @@ stages:
                  inputs:
                   provider: 'azurerm'
                   command: 'init'
+                  backendServiceArm: 'devtoazure'
                   backendAzureRmResourceGroupName: 'Terraform_build-stage'
-                  backendAzureRmStorageAccountName: 'strgar'
-                  backendAzureRmContainerName: 'cntrainer'
-                  backendAzureRmKey: 'blob.state'
+                  backendAzureRmStorageAccountName: 'azstrgbackend'
+                  backendAzureRmContainerName: 'backendcontainer'
+                  backendAzureRmKey: 'terraform.tfstate'
 
                - task: TerraformTask@5
                  inputs:
